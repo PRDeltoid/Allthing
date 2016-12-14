@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+$LOAD_PATH << 'lib'
+
+require 'at_core'
+require 'config'
+
+allthing = Allthing.new
+
+allthing.bot.run
