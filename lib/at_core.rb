@@ -39,6 +39,13 @@ class Allthing
     bot.command :top do |event|
       top(event.server)
     end
+
+    bot.command :dkp do |event, mod, user|
+      user.gsub(/[^0-9]/, "")
+      user = user.to_i
+
+      p mod, user
+    end
   end
 
   def pug
@@ -89,12 +96,21 @@ class Allthing
   end
 
   def update_activity(user, serverid, time_mod)
+    p user, serverid
     database.execute "
       INSERT OR REPLACE INTO users (id, userid, serverid, time)
-        VALUES (COALESCE((SELECT id FROM users WHERE userid=#{user.id} AND serverid=#{serverid}), NULL),
+        VALUES (SELECT id FROM users WHERE userid=#{user.id} AND serverid=#{serverid}),
                 #{user.id},
                 #{serverid},
                 COALESCE((SELECT time FROM users WHERE userid=#{user.id}),'0') + #{time_mod}
+        );"
+  end
+
+  def mod_dkp(userid, dkp_mod)
+    database.execute "
+      INSERT OR REPLACE INTO dkp (id, dkp)
+        VALUES (#{userid},
+                COALESCE((SELECT dkp FROM dkp WHERE id=#{userid}), '0') + #{dkp_mod}
         );"
   end
 
