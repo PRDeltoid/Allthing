@@ -88,7 +88,7 @@ class Allthing
   end
 
   def activity_monitor(server)
-    scheduler.every '10s' do
+    scheduler.every '1m' do
       voice_users(server).each do |user|
         update_activity(user, server.id, 1)
       end
