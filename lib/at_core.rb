@@ -74,7 +74,7 @@ class Allthing
     channels(server).each do |channel|
       if channel.type == "voice" && channel != afk_channel
         channel.users.each do |user|
-          if user.mute == false && 
+          if user.mute == false &&
              user.deaf  == false &&
              user.self_mute == false &&
              user.self_deaf == false
@@ -88,7 +88,7 @@ class Allthing
   end
 
   def activity_monitor(server)
-    scheduler.every '1m' do 
+    scheduler.every '10s' do
       voice_users(server).each do |user|
         update_activity(user, server.id, 1)
       end
@@ -96,14 +96,19 @@ class Allthing
   end
 
   def update_activity(user, serverid, time_mod)
-    p user, serverid
-    database.execute "
-      INSERT OR REPLACE INTO users (id, userid, serverid, time)
-        VALUES (SELECT id FROM users WHERE userid=#{user.id} AND serverid=#{serverid}),
-                #{user.id},
-                #{serverid},
-                COALESCE((SELECT time FROM users WHERE userid=#{user.id}),'0') + #{time_mod}
-        );"
+    p user.id, serverid
+
+    begin
+      database.execute "
+        INSERT OR REPLACE INTO users (id, userid, serverid, time)
+          VALUES (COALESCE((SELECT id FROM users WHERE userid=#{user.id} AND serverid=#{serverid}), NULL),
+                  #{user.id},
+                  #{serverid},
+                  COALESCE((SELECT time FROM users WHERE userid=#{user.id}),'0') + #{time_mod}
+          );"
+    rescue Exception => e
+      p e
+    end
   end
 
   def mod_dkp(userid, dkp_mod)
@@ -115,7 +120,7 @@ class Allthing
   end
 
   def top(server)
-    output = [] 
+    output = []
     top_users = database.execute "SELECT * FROM users WHERE serverid = #{server.id} ORDER BY time DESC LIMIT 10"
     top_users.each do |user|
       id = user[1]
@@ -132,7 +137,7 @@ class Allthing
     minutes = minutes % 60
     out = ""
 
-    if hours > 0 
+    if hours > 0
       out += "#{hours}h "
     end
 
